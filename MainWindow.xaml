@@ -1,0 +1,18 @@
+﻿<Window x:Class="NotepadApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Notepad" Height="450" Width="800">
+    <Grid>
+        <!-- Menu for File Operations -->
+        <Menu VerticalAlignment="Top" HorizontalAlignment="Stretch">
+            <MenuItem Header="File">
+                <MenuItem Header="New" Click="NewFile_Click"/>
+                <MenuItem Header="Open" Click="OpenFile_Click"/>
+                <MenuItem Header="Save" Click="SaveFile_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- TextBox for editing -->
+        <TextBox Name="TextBoxEditor" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" Margin="0,25,0,0"/>
+    </Grid>
+</Window>
