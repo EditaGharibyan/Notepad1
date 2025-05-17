@@ -1,40 +1,109 @@
-﻿using System;
+﻿using System.Windows;
+using TextEditorWpf.Core;
+using TextEditorWpf.Logic;
+using TextEditorWpf.Command;
+using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+using System;
 using System.IO;
-using System.Windows;
-//comment
-Console.WriteLine("hgvbkj");
-namespace NotepadApp
+using Notepad.Visitor;
+using System.Windows.Input;
+
+namespace TextEditorWpf
 {
     public partial class MainWindow : Window
     {
+        private Document _document;
+        private Logic.CommandManager _commandManager;
+
         public MainWindow()
         {
             InitializeComponent();
+            _document = new Document("MyDoc");
+            _commandManager = new Logic.CommandManager();
+            RefreshDocumentList();
         }
 
-        private void NewFile_Click(object sender, RoutedEventArgs e)
+        private void AddTextBlock_Click(object sender, RoutedEventArgs e)
         {
-            TextBoxEditor.Clear();
-        }
+            string text = InputTextBox.Text;
 
-        private void OpenFile_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
+            if (!string.IsNullOrWhiteSpace(text))
             {
-                string filePath = openFileDialog.FileName;
-                string content = File.ReadAllText(filePath);
-                TextBoxEditor.Text = content;
+                Core.TextBlock tb = new Core.TextBlock(text);
+                Command.ICommand obj = new AddText(_document, tb);
+                // _document.Add(tb);
+                _commandManager.ExecuteeCommand(obj);
+                RefreshDocumentList();
+            }
+        }
+        private void Remove_Text(object sender, RoutedEventArgs e)
+        {
+
+            string text = InputTextBox.Text;
+            
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                Core.TextBlock tb = new Core.TextBlock(text);
+                Command.ICommand obj = new RemoveItem(_document, tb);
+                _commandManager.ExecuteeCommand(obj);
+                RefreshDocumentList();
+            }
+        }
+        private void Undo_Click(object sender, RoutedEventArgs e)
+        {
+            _commandManager.UndoLastCommand();
+            RefreshDocumentList();
+        }
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
+
+            this.Close();
+        }
+        private void Remove_Image(object sender, RoutedEventArgs e)
+        {
+            string text = InputTextBox.Text;
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                Core.ImageBlock img = new Core.ImageBlock(text);
+                Command.ICommand obj = new RemoveItem(_document, img);
+                _commandManager.ExecuteeCommand(obj);
+                RefreshDocumentList();
             }
         }
 
-        private void SaveFile_Click(object sender, RoutedEventArgs e)
+        private void AddImage_Click(object sender, RoutedEventArgs e)
         {
-            var saveFileDialog = new Microsoft.Win32.SaveFileDialog();
-            if (saveFileDialog.ShowDialog() == true)
+            try
             {
-                string filePath = saveFileDialog.FileName;
-                File.WriteAllText(filePath, TextBoxEditor.Text);
+                string path = InputTextBox.Text;
+                if (File.Exists(path))
+                {
+                    var imageElement = new ImageBlock(path);
+                    AddImage img=new AddImage(_document, imageElement);
+                    _commandManager.ExecuteeCommand(img);
+                    RefreshDocumentList();
+            }
+                else
+            {
+                throw new Exception("File not excist");
+            }
+        }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
+        }
+
+
+        private void RefreshDocumentList()
+        {
+            ParagraphListBox.Items.Clear();
+
+            foreach (var item in _document.GetElements)
+            {
+                ParagraphListBox.Items.Add(Visitor.Visit((dynamic)item));
             }
         }
     }
